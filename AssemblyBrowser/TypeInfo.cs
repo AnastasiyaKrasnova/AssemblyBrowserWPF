@@ -6,24 +6,30 @@ namespace AssemblyBrowser
 {
 	public class TypeInfo
 	{
-		public string Name { get; }
+		public string TypeName { get; }
 		public string FullName { get; }
 
 		private delegate void Method(MemberInfo member);
 
-		private Dictionary<MemberTypes, Method> TypeMethods;
+		private Dictionary<MemberTypes, Method> TypeDelegates;
 
-		private readonly List<string> typeMembers=new List<string>();
-		public IEnumerable<string> TypeMembers { get { return typeMembers; } }
+		private readonly List<TypeData> typeMethods = new List<TypeData>();
+		public IEnumerable<TypeData> TypeMethods { get { return typeMethods; } }
+
+		private readonly List<TypeData> typeFields = new List<TypeData>();
+		public IEnumerable<TypeData> TypeFields { get { return typeFields; } }
+
+		private readonly List<TypeData> typeProperties = new List<TypeData>();
+		public IEnumerable<TypeData> TypeProperties { get { return typeProperties; } }
 
 		internal TypeInfo(string _name, string _fullname)
 		{
-			Name = _name;
+			TypeName = _name;
 			FullName = _fullname;
-			TypeMethods = new Dictionary<MemberTypes, Method>();
-			TypeMethods.Add(MemberTypes.Field, AddField);
-			TypeMethods.Add(MemberTypes.Property, AddProperty);
-			TypeMethods.Add(MemberTypes.Method, AddMethod);
+			TypeDelegates = new Dictionary<MemberTypes, Method>();
+			TypeDelegates.Add(MemberTypes.Field, AddField);
+			TypeDelegates.Add(MemberTypes.Property, AddProperty);
+			TypeDelegates.Add(MemberTypes.Method, AddMethod);
 		}
 
 		public void AddMember(Type type)
@@ -31,18 +37,18 @@ namespace AssemblyBrowser
 			BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Static;
 			foreach (MemberInfo member in type.GetMembers(flags))
 			{
-				if (TypeMethods.ContainsKey(member.MemberType))
-					TypeMethods[member.MemberType](member);
+				if (TypeDelegates.ContainsKey(member.MemberType))
+					TypeDelegates[member.MemberType](member);
 			}
 		}
 
-		internal void AddMethod(MemberInfo info)
+		internal void AddMethod(MemberInfo info )
 		{
-			MethodInfo methodInfo=(MethodInfo)info;
+			MethodInfo methodInfo = (MethodInfo)info;
 			if (methodInfo.IsSpecialName == true)
 				return;
 			string result;
-			result = GetAccessor(info)+" "+TypeNameFormat(methodInfo.ReturnType) + " " + methodInfo.Name + "(";
+			result = GetAccessor(info) + " " + TypeNameFormat(methodInfo.ReturnType) + " " + methodInfo.Name + "(";
 			ParameterInfo[] parameters = methodInfo.GetParameters();
 			for (int i = 0; i < parameters.Length; i++)
 			{
@@ -51,7 +57,7 @@ namespace AssemblyBrowser
 				result += TypeNameFormat(parameters[i].ParameterType);
 			}
 			result += ")";
-			typeMembers.Add(result);
+			typeMethods.Add(new TypeData(result));
 		}
 
 		internal void AddField(MemberInfo info)
@@ -59,7 +65,7 @@ namespace AssemblyBrowser
 			string result;
 			FieldInfo fieldInfo = (FieldInfo)info;
 			result = GetAccessor(info) + " " + TypeNameFormat(fieldInfo.FieldType) + " " + info.Name;
-			typeMembers.Add(result);
+			typeFields.Add(new TypeData(result));
 		}
 
 		internal void AddProperty(MemberInfo info)
@@ -67,7 +73,7 @@ namespace AssemblyBrowser
 			string result;
 			PropertyInfo propertyInfo = (PropertyInfo)info;
 			result = GetAccessor(info) + " " + TypeNameFormat(propertyInfo.PropertyType) + " " + info.Name;
-			typeMembers.Add(result);
+			typeProperties.Add(new TypeData(result));
 		}
 
 		private string TypeNameFormat(Type type)
@@ -92,11 +98,20 @@ namespace AssemblyBrowser
 		public static string GetAccessor(MemberInfo member)
 		{
 			if (member.MemberType == MemberTypes.Field && (member as FieldInfo).IsPublic ||
-				member.MemberType == MemberTypes.Property && (member as PropertyInfo).GetSetMethod() != null ||
+				member.MemberType == MemberTypes.Property && ((member as PropertyInfo).GetGetMethod() != null || (member as PropertyInfo).GetSetMethod() != null) ||
 				member.MemberType == MemberTypes.Method && (member as MethodInfo).IsPublic)
 				return "public";
 			return "private";
 		}
+	}
+
+	public class TypeData
+	{
+		public TypeData(string info)
+        {
+			View = info;
+        }
+		public string View { get; set; }
 	}
 }
 

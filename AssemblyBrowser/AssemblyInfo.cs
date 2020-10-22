@@ -9,22 +9,22 @@ namespace AssemblyBrowser
 		public AssemblyInfo CollectAssemblyInfo(string path)
 		{
 			Assembly assembly = Assembly.LoadFrom(path);
-			AssemblyInfo result = new AssemblyInfo(assembly.GetName().Name);
+			AssemblyInfo result = new AssemblyInfo(assembly.GetName().FullName);
 			Type[] types = assembly.GetTypes();
 			foreach (Type type in types)
 			{
 				if (!type.IsNested)
 				{
-					NamespaceInfo nsi=null;
+					NamespaceInfo nsi = null;
 					if (type.Namespace != null)
 					{
 						string[] namespaces = type.Namespace.Split('.');
-						nsi= result.GetNamespace(namespaces[0]);
-						for (int i = 1; i < namespaces.Length; i++)
-						{
-							result.GetNamespace(namespaces[i]);
-						}
+						nsi= result.GetNamespace(type.Namespace);
 					}
+                    else
+                    {
+						nsi = new NamespaceInfo("No namespace");
+                    }
 					nsi.AddType(GenerateTypeInfo(type));
 				}
 			}
