@@ -1,40 +1,27 @@
-﻿using System;
-using System.Reflection;
+﻿using System.Collections.Generic;
 
 namespace AssemblyBrowser
 {
-	public class AsmBrowser
+	public class AssemblyInfo
 	{
+		public  string AssemblyName { get; }
 
-		public AssemblyInfo CollectAssemblyInfo(string path)
+		private readonly List<NamespaceInfo> namespaces= new List<NamespaceInfo>();
+		public IEnumerable<NamespaceInfo> Namespaces { get { return namespaces; } }
+
+		internal AssemblyInfo(string _name)
 		{
-			Assembly assembly = Assembly.LoadFrom(path);
-			AssemblyInfo result = new AssemblyInfo(assembly.GetName().FullName);
-			Type[] types = assembly.GetTypes();
-			foreach (Type type in types)
-			{
-				if (!type.IsNested)
-				{
-					NamespaceInfo nsi = null;
-					if (type.Namespace != null)
-					{
-						string[] namespaces = type.Namespace.Split('.');
-						nsi= result.GetNamespace(type.Namespace);
-					}
-                    else
-                    {
-						nsi = new NamespaceInfo("No namespace");
-                    }
-					nsi.AddType(GenerateTypeInfo(type));
-				}
-			}
-			return result;
+			AssemblyName = _name;
 		}
 
-		private TypeInfo GenerateTypeInfo(Type type)
+		internal NamespaceInfo GetNamespace(string name)
 		{
-			TypeInfo result = new TypeInfo(type.Name, type.FullName);
-			result.AddMember(type);
+			NamespaceInfo result;
+
+			if ((result = namespaces.Find(x => x.NamespaceName == name)) != null)
+				return result;
+			result = new NamespaceInfo(name);
+			namespaces.Add(result);
 			return result;
 		}
 	}

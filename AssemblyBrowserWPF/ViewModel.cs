@@ -82,8 +82,12 @@ namespace AssemblyBrowserWPF
         {
             AsmBrowser asmBrowser = new AsmBrowser();
             AssemblyInfo browseResult = asmBrowser.CollectAssemblyInfo(filePath);
-            AssemblyName = browseResult.AssemblyName;
-            AssemblyData = browseResult.Namespaces;
+            if (browseResult!=null)
+            {
+                AssemblyName = browseResult.AssemblyName;
+                AssemblyData = browseResult.Namespaces;
+            }
+            
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
