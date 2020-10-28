@@ -13,14 +13,14 @@ namespace AssemblyBrowser
 
 		private Dictionary<MemberTypes, Method> TypeDelegates;
 
-		private readonly List<TypeData> typeMethods = new List<TypeData>();
-		public IEnumerable<TypeData> TypeMethods { get { return typeMethods; } }
+		private readonly List<TypeMethod> typeMethods = new List<TypeMethod>();
+		public IEnumerable<TypeMethod> TypeMethods { get { return typeMethods; } }
 
-		private readonly List<TypeData> typeFields = new List<TypeData>();
-		public IEnumerable<TypeData> TypeFields { get { return typeFields; } }
+		private readonly List<TypeField> typeFields = new List<TypeField>();
+		public IEnumerable<TypeField> TypeFields { get { return typeFields; } }
 
-		private readonly List<TypeData> typeProperties = new List<TypeData>();
-		public IEnumerable<TypeData> TypeProperties { get { return typeProperties; } }
+		private readonly List<TypeProperty> typeProperties = new List<TypeProperty>();
+		public IEnumerable<TypeProperty> TypeProperties { get { return typeProperties; } }
 
 		internal TypeInfo(string _name, string _fullname)
 		{
@@ -47,33 +47,36 @@ namespace AssemblyBrowser
 			MethodInfo methodInfo = (MethodInfo)info;
 			if (methodInfo.IsSpecialName == true)
 				return;
-			string result;
-			result = GetAccessor(info) + " " + TypeNameFormat(methodInfo.ReturnType) + " " + methodInfo.Name + "(";
+			string acceptors = GetAccessor(info);
+			string returnType = TypeNameFormat(methodInfo.ReturnType);
+			string name=methodInfo.Name;
+
 			ParameterInfo[] parameters = methodInfo.GetParameters();
+			string[] param = new string[parameters.Length];
 			for (int i = 0; i < parameters.Length; i++)
 			{
-				if (i != 0)
-					result += ", ";
-				result += TypeNameFormat(parameters[i].ParameterType);
+				param[i] = TypeNameFormat(parameters[i].ParameterType);
 			}
-			result += ")";
-			typeMethods.Add(new TypeData(result));
+			typeMethods.Add(new TypeMethod(acceptors,returnType,name,param));
 		}
 
 		internal void AddField(MemberInfo info)
 		{
-			string result;
 			FieldInfo fieldInfo = (FieldInfo)info;
-			result = GetAccessor(info) + " " + TypeNameFormat(fieldInfo.FieldType) + " " + info.Name;
-			typeFields.Add(new TypeData(result));
+			string acceptors = GetAccessor(info);
+			string returnType = TypeNameFormat(fieldInfo.FieldType);
+			string name = info.Name;
+			typeFields.Add(new TypeField(acceptors,returnType,name));
 		}
 
 		internal void AddProperty(MemberInfo info)
 		{
-			string result;
+			
 			PropertyInfo propertyInfo = (PropertyInfo)info;
-			result = GetAccessor(info) + " " + TypeNameFormat(propertyInfo.PropertyType) + " " + info.Name;
-			typeProperties.Add(new TypeData(result));
+			string acceptors = GetAccessor(info);
+			string returnType = TypeNameFormat(propertyInfo.PropertyType);
+			string name = info.Name;
+			typeProperties.Add(new TypeProperty(acceptors,returnType,name));
 		}
 
 		private string TypeNameFormat(Type type)
@@ -105,13 +108,76 @@ namespace AssemblyBrowser
 		}
 	}
 
-	public class TypeData
+
+	public class TypeMethod
 	{
-		public TypeData(string info)
+		string Acceptors;
+		string[] Params;
+		string ReturnType;
+		string Name;
+		public TypeMethod(string acceptors, string returnType, string name, string[] param)
+		{
+			Acceptors = acceptors;
+			ReturnType = returnType;
+			Name = name;
+			Params = param;
+		}
+		private string GetView()
         {
-			View = info;
-        }
-		public string View { get; set; }
+			string result =Acceptors+" " + ReturnType + " " + Name + "(";
+			for (int i = 0; i < Params.Length; i++)
+			{
+				if (i != 0)
+					result += ", ";
+				result += Params[i];
+			}
+			result += ")";
+			return result;
+		}
+
+		public string View { get { return GetView(); } }
+	}
+
+	public class TypeField
+	{
+		string Acceptors;
+		string ReturnType;
+		string Name;
+		public TypeField(string acceptors, string returnType, string name)
+		{
+			Acceptors = acceptors;
+			ReturnType = returnType;
+			Name = name;
+		}
+		private string GetView()
+		{
+			string result;
+			result = Acceptors + " " + ReturnType + " " + Name;
+			return result;
+		}
+
+		public string View { get { return GetView(); } }
+	}
+
+	public class TypeProperty
+	{
+		string Acceptors;
+		string ReturnType;
+		string Name;
+		public TypeProperty(string acceptors, string returnType, string name)
+		{
+			Acceptors = acceptors;
+			ReturnType = returnType;
+			Name = name;
+		}
+		private string GetView()
+		{
+			string result;
+			result = Acceptors + " " + ReturnType + " " + Name;
+			return result;
+		}
+
+		public string View { get { return GetView(); } }
 	}
 }
 

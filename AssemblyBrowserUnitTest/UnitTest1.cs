@@ -40,12 +40,12 @@ namespace UnitTests
         public void TestMembers()
         {
             result = asmBrowser.CollectAssemblyInfo("C:\\Users\\home\\Desktop\\Labs\\Третий Сем\\СПП\\OldFaker\\Faker\\bin\\Debug\\netstandard2.0\\Faker.dll");
-            IEnumerable<TypeData> methods = result.Namespaces.First().TypesInfo.First(obj => obj.TypeName == "ArrayGen").TypeMethods;
+            IEnumerable<TypeMethod> methods = result.Namespaces.First().TypesInfo.First(obj => obj.TypeName == "ArrayGen").TypeMethods;
             Assert.IsTrue(methods.Any(obj => obj.View == "private Void FillArray(Array, Int32, Int32[])"));
-            methods = result.Namespaces.First().TypesInfo.First(obj => obj.TypeName == "ArrayGen").TypeFields;
-            Assert.IsTrue(methods.Any(obj => obj.View == "private Random _numGen"));
-            methods = result.Namespaces.First().TypesInfo.First(obj => obj.TypeName == "ArrayGen").TypeProperties;
-            Assert.IsTrue(methods.Any(obj => obj.View == "public Type[] PossibleTypes"));
+            IEnumerable<TypeField> fields = result.Namespaces.First().TypesInfo.First(obj => obj.TypeName == "ArrayGen").TypeFields;
+            Assert.IsTrue(fields.Any(obj => obj.View == "private Random _numGen"));
+            IEnumerable<TypeProperty> property = result.Namespaces.First().TypesInfo.First(obj => obj.TypeName == "ArrayGen").TypeProperties;
+            Assert.IsTrue(property.Any(obj => obj.View == "public Type[] PossibleTypes"));
 
         }
 
